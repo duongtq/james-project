@@ -66,8 +66,38 @@ public interface Store<T, I> {
 
     class Impl<T, I extends BlobPartsId> implements Store<T, I> {
 
+        public interface ValueToSave {
+            Mono<BlobId> saveIn(BlobStore blobStore);
+        }
+
+        public static class BytesToSave implements ValueToSave {
+            private final byte[] bytes;
+
+            public BytesToSave(byte[] bytes) {
+                this.bytes = bytes;
+            }
+
+            @Override
+            public Mono<BlobId> saveIn(BlobStore blobStore) {
+                return blobStore.save(bytes);
+            }
+        }
+
+        public static class InputStreamToSave implements ValueToSave {
+            private final FixedLengthInputStream inputStream;
+
+            public InputStreamToSave(FixedLengthInputStream inputStream) {
+                this.inputStream = inputStream;
+            }
+
+            @Override
+            public Mono<BlobId> saveIn(BlobStore blobStore) {
+                return blobStore.save(inputStream.getInputStream(), inputStream.getContentLength());
+            }
+        }
+
         public interface Encoder<T> {
-            Stream<Pair<BlobType, InputStream>> encode(T t);
+            Stream<Pair<BlobType, ValueToSave>> encode(T t);
         }
 
         public interface Decoder<T> {
@@ -94,9 +124,9 @@ public interface Store<T, I> {
                 .map(idFactory::generate);
         }
 
-        private Mono<Tuple2<BlobType, BlobId>> saveEntry(Pair<BlobType, InputStream> entry) {
+        private Mono<Tuple2<BlobType, BlobId>> saveEntry(Pair<BlobType, ValueToSave> entry) {
             return Mono.just(entry.getLeft())
-                .zipWith(blobStore.save(entry.getRight()));
+                .zipWith(entry.getRight().saveIn(blobStore));
         }
 
         @Override
