@@ -93,7 +93,16 @@ public class ObjectStorageBlobsDAO implements BlobStore {
 
     @Override
     public Mono<BlobId> save(byte[] data) {
-        return save(new ByteArrayInputStream(data));
+        HashingInputStream hashingInputStream = new HashingInputStream(Hashing.sha256(), new ByteArrayInputStream(data));
+        readFully(hashingInputStream);
+        BlobId blobId = blobIdFactory.from(hashingInputStream.hash().toString());
+
+        Blob blob = blobStore.blobBuilder(blobId.asString())
+            .payload(payloadCodec.write(new ByteArrayInputStream(data)))
+            .build();
+
+        return save(blob)
+            .thenApply(any -> blobId);
     }
 
     @Override
@@ -120,8 +129,13 @@ public class ObjectStorageBlobsDAO implements BlobStore {
                             .payload(payload.getPayload())
                             .build();
 
-        return Mono.fromRunnable(() -> putBlobFunction.putBlob(blob))
+        return save(blob)
             .then(Mono.fromCallable(() -> blobIdFactory.from(hashingInputStream.hash().toString())));
+    }
+
+    private Mono<String> save(Blob blob) {
+        String containerName = this.containerName.value();
+        return Mono.fromCallable(() -> blobStore.putBlob(containerName, blob));
     }
 
     @Override
@@ -145,6 +159,15 @@ public class ObjectStorageBlobsDAO implements BlobStore {
                 cause);
         }
 
+    }
+
+    private void readFully(InputStream inputStream) {
+        byte[] buffer = new byte[1024];
+        try {
+            while (inputStream.read(buffer) > 0) { }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void deleteContainer() {
