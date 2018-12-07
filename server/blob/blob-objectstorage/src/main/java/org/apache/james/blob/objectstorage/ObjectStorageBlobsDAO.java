@@ -96,7 +96,7 @@ public class ObjectStorageBlobsDAO implements BlobStore {
         BlobId blobId = blobIdFactory.forPayload(data);
 
         Blob blob = blobStore.blobBuilder(blobId.asString())
-            .payload(payloadCodec.write(new ByteArrayInputStream(data)))
+            .payload(payloadCodec.write(data))
             .build();
 
         return save(blob)
