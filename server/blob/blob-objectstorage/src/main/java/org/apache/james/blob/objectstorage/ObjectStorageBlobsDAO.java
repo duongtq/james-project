@@ -19,7 +19,6 @@
 
 package org.apache.james.blob.objectstorage;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
@@ -93,14 +92,17 @@ public class ObjectStorageBlobsDAO implements BlobStore {
 
     @Override
     public Mono<BlobId> save(byte[] data) {
+        Preconditions.checkNotNull(data);
         BlobId blobId = blobIdFactory.forPayload(data);
+        Payload payload = payloadCodec.write(data);
 
         Blob blob = blobStore.blobBuilder(blobId.asString())
-            .payload(payloadCodec.write(data))
+            .payload(payload.getPayload())
+            .contentLength(payload.getLength().orElse(new Long(data.length)))
             .build();
 
         return save(blob)
-            .thenApply(any -> blobId);
+            .thenReturn(blobId);
     }
 
     @Override
