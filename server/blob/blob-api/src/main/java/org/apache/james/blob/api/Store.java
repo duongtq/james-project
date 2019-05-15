@@ -19,7 +19,6 @@
 
 package org.apache.james.blob.api;
 
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Stream;
