@@ -83,19 +83,6 @@ public interface Store<T, I> {
             }
         }
 
-        public static class InputStreamToSave implements ValueToSave {
-            private final InputStream inputStream;
-
-            public InputStreamToSave(InputStream inputStream) {
-                this.inputStream = inputStream;
-            }
-
-            @Override
-            public Mono<BlobId> saveIn(BlobStore blobStore) {
-                return blobStore.save(inputStream);
-            }
-        }
-
         public interface Encoder<T> {
             Stream<Pair<BlobType, ValueToSave>> encode(T t);
         }
