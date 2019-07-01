@@ -17,45 +17,48 @@
  * under the License.                                           *
  ****************************************************************/
 
-package org.apache.james.vault;
+package org.apache.james.vault.metadata;
 
 import java.util.Objects;
 
+import org.apache.james.blob.api.BlobId;
+import org.apache.james.blob.api.BucketName;
+
 import com.google.common.base.Preconditions;
 
-public class DeletedMessageWithStorageInformation {
-    private final DeletedMessage deletedmessage;
-    private final StorageInformation storageInformation;
+public class StorageInformation {
+    private final BucketName bucketName;
+    private final BlobId blobId;
 
-    public DeletedMessageWithStorageInformation(DeletedMessage deletedmessage, StorageInformation storageInformation) {
-        Preconditions.checkNotNull(deletedmessage);
-        Preconditions.checkNotNull(storageInformation);
+    public StorageInformation(BucketName bucketName, BlobId blobId) {
+        Preconditions.checkNotNull(bucketName);
+        Preconditions.checkNotNull(blobId);
 
-        this.deletedmessage = deletedmessage;
-        this.storageInformation = storageInformation;
+        this.bucketName = bucketName;
+        this.blobId = blobId;
     }
 
-    public DeletedMessage getDeletedmessage() {
-        return deletedmessage;
+    public BucketName getBucketName() {
+        return bucketName;
     }
 
-    public StorageInformation getStorageInformation() {
-        return storageInformation;
+    public BlobId getBlobId() {
+        return blobId;
     }
 
     @Override
     public final boolean equals(Object o) {
-        if (o instanceof DeletedMessageWithStorageInformation) {
-            DeletedMessageWithStorageInformation that = (DeletedMessageWithStorageInformation) o;
+        if (o instanceof StorageInformation) {
+            StorageInformation that = (StorageInformation) o;
 
-            return Objects.equals(this.deletedmessage, that.deletedmessage)
-                && Objects.equals(this.storageInformation, that.storageInformation);
+            return Objects.equals(this.bucketName, that.bucketName)
+                && Objects.equals(this.blobId, that.blobId);
         }
         return false;
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hash(deletedmessage, storageInformation);
+        return Objects.hash(bucketName, blobId);
     }
 }

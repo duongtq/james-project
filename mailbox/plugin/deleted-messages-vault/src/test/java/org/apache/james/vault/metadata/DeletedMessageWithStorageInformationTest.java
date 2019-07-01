@@ -17,11 +17,12 @@
  * under the License.                                           *
  ****************************************************************/
 
-package org.apache.james.vault;
+package org.apache.james.vault.metadata;
 
-import static org.apache.james.vault.DeletedMessageVaultMetadataFixture.STORAGE_INFORMATION;
+import static org.apache.james.vault.metadata.DeletedMessageVaultMetadataFixture.STORAGE_INFORMATION;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import org.apache.james.vault.DeletedMessageFixture;
 import org.junit.jupiter.api.Test;
 
 import nl.jqno.equalsverifier.EqualsVerifier;
