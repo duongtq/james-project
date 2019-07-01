@@ -150,7 +150,7 @@ public interface DeletedMessageMetadataVaultContract {
         Mono.from(metadataVault().store(DELETED_MESSAGE)).block();
         Mono.from(metadataVault().store(DELETED_MESSAGE_2)).block();
 
-        Mono.from(metadataVault().remove(BUCKET_NAME, USER, DELETED_MESSAGE.getDeletedmessage().getMessageId())).block();
+        Mono.from(metadataVault().remove(BUCKET_NAME, USER, DELETED_MESSAGE.getDeletedMessage().getMessageId())).block();
 
         Stream<DeletedMessageWithStorageInformation> messages = Flux.from(metadataVault().listMessages(BUCKET_NAME, USER)).toStream();
         assertThat(messages).containsExactly(DELETED_MESSAGE_2);
@@ -161,7 +161,7 @@ public interface DeletedMessageMetadataVaultContract {
         Mono.from(metadataVault().store(DELETED_MESSAGE_2)).block();
 
         assertThatCode(() -> Mono.from(metadataVault()
-                .remove(BUCKET_NAME, USER, DELETED_MESSAGE.getDeletedmessage().getMessageId()))
+                .remove(BUCKET_NAME, USER, DELETED_MESSAGE.getDeletedMessage().getMessageId()))
                 .block())
             .doesNotThrowAnyException();
     }
@@ -171,7 +171,7 @@ public interface DeletedMessageMetadataVaultContract {
         Mono.from(metadataVault().store(DELETED_MESSAGE)).block();
 
         StorageInformation storageInformation = Mono.from(metadataVault()
-            .retrieveStorageInformation(USER, DELETED_MESSAGE.getDeletedmessage().getMessageId()))
+            .retrieveStorageInformation(USER, DELETED_MESSAGE.getDeletedMessage().getMessageId()))
             .block();
 
         assertThat(storageInformation).isEqualTo(DELETED_MESSAGE.getStorageInformation());
@@ -182,7 +182,7 @@ public interface DeletedMessageMetadataVaultContract {
         Mono.from(metadataVault().store(DELETED_MESSAGE_2)).block();
 
         Optional<StorageInformation> storageInformation = Mono.from(metadataVault()
-            .retrieveStorageInformation(USER, DELETED_MESSAGE.getDeletedmessage().getMessageId()))
+            .retrieveStorageInformation(USER, DELETED_MESSAGE.getDeletedMessage().getMessageId()))
             .blockOptional();
 
         assertThat(storageInformation).isEmpty();
@@ -191,7 +191,7 @@ public interface DeletedMessageMetadataVaultContract {
     @Test
     default void retrieveStorageInformationShouldReturnEmptyWhenUserVaultIsEmpty() {
         Optional<StorageInformation> storageInformation = Mono.from(metadataVault()
-            .retrieveStorageInformation(USER, DELETED_MESSAGE.getDeletedmessage().getMessageId()))
+            .retrieveStorageInformation(USER, DELETED_MESSAGE.getDeletedMessage().getMessageId()))
             .blockOptional();
 
         assertThat(storageInformation).isEmpty();
