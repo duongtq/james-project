@@ -24,8 +24,8 @@ import org.apache.james.blob.api.BucketName;
 import org.apache.james.blob.api.HashBlobId;
 
 public interface DeletedMessageVaultMetadataFixture {
-    BlobId BLOB_ID = new HashBlobId.Factory().randomId();
-    BlobId BLOB_ID_2 = new HashBlobId.Factory().randomId();
+    BlobId BLOB_ID = new HashBlobId.Factory().from("05dcb33b-8382-4744-923a-bc593ad84d23");
+    BlobId BLOB_ID_2 = new HashBlobId.Factory().from("05dcb33b-8382-4744-923a-bc593ad84d24");
     BucketName BUCKET_NAME = BucketName.of("bucket-2019-06-01");
     StorageInformation STORAGE_INFORMATION = new StorageInformation(BUCKET_NAME, BLOB_ID);
 }
