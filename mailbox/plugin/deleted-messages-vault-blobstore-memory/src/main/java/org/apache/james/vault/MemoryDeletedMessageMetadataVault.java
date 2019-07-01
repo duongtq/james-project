@@ -43,30 +43,36 @@ public class MemoryDeletedMessageMetadataVault implements DeletedMessageMetadata
     }
 
     @Override
-    public synchronized Publisher<Void> store(DeletedMessageWithStorageInformation deletedMessage) {
+    public Publisher<Void> store(DeletedMessageWithStorageInformation deletedMessage) {
         BucketName bucketName = deletedMessage.getStorageInformation().getBucketName();
         User owner = deletedMessage.getDeletedmessage().getOwner();
         MessageId messageId = deletedMessage.getDeletedmessage().getMessageId();
 
+        return Mono.fromRunnable(() -> store(deletedMessage, bucketName, owner, messageId));
+    }
+
+    private synchronized void store(DeletedMessageWithStorageInformation deletedMessage, BucketName bucketName, User owner, MessageId messageId) {
         Map<MessageId, DeletedMessageWithStorageInformation> userVault = userVault(bucketName, owner);
         userVault.put(messageId, deletedMessage);
         table.put(bucketName, owner, userVault);
-
-        return Mono.empty();
     }
 
     @Override
-    public synchronized Publisher<Void> removeBucket(BucketName bucketName) {
+    public Publisher<Void> removeBucket(BucketName bucketName) {
+        return Mono.fromRunnable(() -> doRemoveBucket(bucketName));
+    }
+
+    private synchronized void doRemoveBucket(BucketName bucketName) {
         table.row(bucketName).clear();
-
-        return Mono.empty();
     }
 
     @Override
-    public synchronized Publisher<Void> remove(BucketName bucketName, User user, MessageId messageId) {
-        userVault(bucketName, user).remove(messageId);
+    public Publisher<Void> remove(BucketName bucketName, User user, MessageId messageId) {
+        return Mono.fromRunnable(() -> doRemove(bucketName, user, messageId));
+    }
 
-        return Mono.empty();
+    private synchronized void doRemove(BucketName bucketName, User user, MessageId messageId) {
+        userVault(bucketName, user).remove(messageId);
     }
 
     @Override
