@@ -47,6 +47,7 @@ import org.junit.jupiter.api.Test;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
+import net.javacrumbs.jsonunit.core.Option;
 
 class MappingRoutesTest {
 
@@ -62,6 +63,7 @@ class MappingRoutesTest {
         domainList.addDomain(Domain.of("domain.tld"));
         domainList.addDomain(Domain.of("aliasdomain.tld"));
         domainList.addDomain(Domain.of("gmail.com"));
+        domainList.addDomain(Domain.of("linagora.com"));
 
         recipientRewriteTable.setDomainList(domainList);
 
@@ -94,6 +96,9 @@ class MappingRoutesTest {
         recipientRewriteTable.addAliasMapping(
             MappingSource.fromUser(User.fromUsername("alias@domain.tld")),
             "user@domain.tld");
+        recipientRewriteTable.addAliasMapping(
+            MappingSource.fromUser(User.fromUsername("alias@domain.tld")),
+            "abc@domain.tld");
 
         String jsonBody = when()
             .get()
@@ -105,13 +110,19 @@ class MappingRoutesTest {
             .asString();
 
         assertThatJson(jsonBody)
-            .isEqualTo(
-                "{" +
+            .when(Option.IGNORING_ARRAY_ORDER)
+            .isEqualTo("{" +
                 "  \"alias@domain.tld\" : [" +
                 "    {" +
                 "      \"type\": \"Alias\"," +
                 "      \"mapping\": \"user@domain.tld\"" +
+                "    }," +
+                "    " +
+                "    {" +
+                "      \"type\": \"Alias\"," +
+                "      \"mapping\" : \"abc@domain.tld\"" +
                 "    }" +
+                "    " +
                 "  ]" +
                 "}");
     }
@@ -120,7 +131,10 @@ class MappingRoutesTest {
     void getMappingsShouldReturnAliasDomainMappings() throws RecipientRewriteTableException {
         recipientRewriteTable.addAliasDomainMapping(
             MappingSource.fromDomain(Domain.of("aliasdomain.tld")),
-            Domain.of("realdomain.tld"));
+            Domain.of("domain1abc.tld"));
+        recipientRewriteTable.addAliasDomainMapping(
+            MappingSource.fromDomain(Domain.of("aliasdomain.tld")),
+            Domain.of("domain2cde.tld"));
 
         String jsonBody = when()
             .get()
@@ -132,12 +146,19 @@ class MappingRoutesTest {
             .asString();
 
         assertThatJson(jsonBody)
+            .when(Option.IGNORING_ARRAY_ORDER)
             .isEqualTo("{" +
                 "  \"aliasdomain.tld\" : [" +
                 "    {" +
                 "      \"type\": \"Domain\"," +
-                "      \"mapping\": \"realdomain.tld\"" +
+                "      \"mapping\": \"domain1abc.tld\"" +
+                "    }," +
+                "    " +
+                "    {" +
+                "      \"type\": \"Domain\"," +
+                "      \"mapping\" : \"domain2cde.tld\"" +
                 "    }" +
+                "    " +
                 "  ]" +
                 "}");
 
@@ -147,7 +168,9 @@ class MappingRoutesTest {
     void getMappingsShouldReturnAddressMappings() throws AddressException, RecipientRewriteTableException {
         MailAddress mailAddress = new MailAddress("group@domain.tld");
         recipientRewriteTable.addAddressMapping(
-            MappingSource.fromMailAddress(mailAddress), "user@domain.tld" );
+            MappingSource.fromMailAddress(mailAddress), "user123@domain.tld" );
+        recipientRewriteTable.addAddressMapping(
+            MappingSource.fromMailAddress(mailAddress), "user789@domain.tld" );
 
         String jsonBody = when()
             .get()
@@ -159,12 +182,19 @@ class MappingRoutesTest {
             .asString();
 
         assertThatJson(jsonBody)
+            .when(Option.IGNORING_ARRAY_ORDER)
             .isEqualTo("{" +
                 "  \"group@domain.tld\" : [" +
                 "    {" +
                 "      \"type\": \"Address\"," +
-                "      \"mapping\": \"user@domain.tld\"" +
+                "      \"mapping\": \"user123@domain.tld\"" +
+                "    }," +
+                "    " +
+                "    {" +
+                "      \"type\": \"Address\"," +
+                "      \"mapping\" : \"user789@domain.tld\"" +
                 "    }" +
+                "    " +
                 "  ]" +
                 "}");
     }

@@ -19,8 +19,13 @@
 
 package org.apache.james.webadmin.routes;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -36,8 +41,13 @@ import org.apache.james.webadmin.dto.MappingValue;
 import org.apache.james.webadmin.utils.ErrorResponder;
 import org.apache.james.webadmin.utils.JsonTransformer;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.util.MultiMap;
 
 import com.github.steveash.guavate.Guavate;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -80,13 +90,13 @@ public class MappingRoutes implements Routes {
         @ApiResponse(code = HttpStatus.INTERNAL_SERVER_ERROR_500,
             message = "Internal server error - Something went bad on the server side.")
     })
-    private Map<String, List<MappingValue>> getMappings(Request request, Response response) {
-        try {
-            return recipientRewriteTable.getAllMappings()
+
+
+    private Map<String, List<MappingValue>> getMappings(Request request, Response response) { try { return recipientRewriteTable.getAllMappings()
                 .entrySet()
                 .stream()
                 .collect(Guavate.toImmutableMap(
-                    this::toMappingKey,
+                    entry -> entry.getKey().asString(),
                     this::toMappingValues));
         } catch (RecipientRewriteTableException e) {
             throw ErrorResponder.builder()
@@ -97,15 +107,13 @@ public class MappingRoutes implements Routes {
         }
     }
 
-    private List<MappingValue> toMappingValues(Map.Entry<MappingSource, Mappings> entry) {
+    private List<MappingValue> toMappingValues(MultiMap.Entry<MappingSource, Mappings> entry) {
         return entry.getValue()
             .asStream()
             .map(mapping -> new MappingValue(mapping.getType().name(), mapping.getMappingValue()))
             .collect(Guavate.toImmutableList());
     }
 
-    private String toMappingKey(Map.Entry<MappingSource, Mappings> entry) {
-        return entry.getKey().asString();
-    }
+
 }
 
