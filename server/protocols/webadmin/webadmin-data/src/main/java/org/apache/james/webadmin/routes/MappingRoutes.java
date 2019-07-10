@@ -19,18 +19,13 @@
 
 package org.apache.james.webadmin.routes;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-
+import com.github.steveash.guavate.Guavate;
+import com.google.common.collect.ImmutableListMultimap;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.james.rrt.api.RecipientRewriteTable;
 import org.apache.james.rrt.api.RecipientRewriteTableException;
 import org.apache.james.rrt.lib.MappingSource;
@@ -42,20 +37,15 @@ import org.apache.james.webadmin.utils.ErrorResponder;
 import org.apache.james.webadmin.utils.JsonTransformer;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.util.MultiMap;
-
-import com.github.steveash.guavate.Guavate;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import spark.Request;
 import spark.Response;
 import spark.Service;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import java.util.List;
+import java.util.Map;
 
 @Api(tags = "Mappings")
 @Path(MappingRoutes.BASE_PATH)
@@ -91,13 +81,16 @@ public class MappingRoutes implements Routes {
             message = "Internal server error - Something went bad on the server side.")
     })
 
-
-    private Map<String, List<MappingValue>> getMappings(Request request, Response response) { try { return recipientRewriteTable.getAllMappings()
+    private ImmutableListMultimap<String, MappingValue> getMappings(Request request, Response response) {
+        try {
+            return recipientRewriteTable.getAllMappings()
                 .entrySet()
                 .stream()
-                .collect(Guavate.toImmutableMap(
-                    entry -> entry.getKey().asString(),
-                    this::toMappingValues));
+                .flatMap(entry -> entry.getValue().asStream()
+                    .map(mapping -> Pair.of(entry.getKey(), mapping)))
+                .collect(Guavate.toImmutableListMultimap(
+                    pair -> pair.getLeft().asString(),
+                    pair -> new MappingValue(pair.getRight())));
         } catch (RecipientRewriteTableException e) {
             throw ErrorResponder.builder()
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500)

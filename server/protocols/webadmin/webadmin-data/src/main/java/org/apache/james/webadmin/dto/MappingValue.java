@@ -19,12 +19,18 @@
 
 package org.apache.james.webadmin.dto;
 
+import org.apache.james.rrt.lib.Mapping;
+
 import java.util.Objects;
 
 public class MappingValue {
 
     private final String type;
     private final String mapping;
+
+    public MappingValue(Mapping mapping) {
+        this(mapping.getType().name(), mapping.getMappingValue());
+    }
 
     public MappingValue(String type, String mapping) {
         this.type = type;
