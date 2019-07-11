@@ -32,7 +32,7 @@ import org.apache.james.rrt.lib.MappingSource;
 import org.apache.james.rrt.lib.Mappings;
 import org.apache.james.webadmin.Constants;
 import org.apache.james.webadmin.Routes;
-import org.apache.james.webadmin.dto.MappingValue;
+import org.apache.james.webadmin.dto.MappingValueDTO;
 import org.apache.james.webadmin.utils.ErrorResponder;
 import org.apache.james.webadmin.utils.JsonTransformer;
 import org.eclipse.jetty.http.HttpStatus;
@@ -45,7 +45,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import java.util.List;
-import java.util.Map;
 
 @Api(tags = "Mappings")
 @Path(MappingRoutes.BASE_PATH)
@@ -81,7 +80,7 @@ public class MappingRoutes implements Routes {
             message = "Internal server error - Something went bad on the server side.")
     })
 
-    private ImmutableListMultimap<String, MappingValue> getMappings(Request request, Response response) {
+    private ImmutableListMultimap<String, MappingValueDTO> getMappings(Request request, Response response) {
         try {
             return recipientRewriteTable.getAllMappings()
                 .entrySet()
@@ -90,7 +89,7 @@ public class MappingRoutes implements Routes {
                     .map(mapping -> Pair.of(entry.getKey(), mapping)))
                 .collect(Guavate.toImmutableListMultimap(
                     pair -> pair.getLeft().asString(),
-                    pair -> new MappingValue(pair.getRight())));
+                    pair -> new MappingValueDTO(pair.getRight())));
         } catch (RecipientRewriteTableException e) {
             throw ErrorResponder.builder()
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500)
@@ -100,13 +99,11 @@ public class MappingRoutes implements Routes {
         }
     }
 
-    private List<MappingValue> toMappingValues(MultiMap.Entry<MappingSource, Mappings> entry) {
+    private List<MappingValueDTO> toMappingValues(MultiMap.Entry<MappingSource, Mappings> entry) {
         return entry.getValue()
             .asStream()
-            .map(mapping -> new MappingValue(mapping.getType().name(), mapping.getMappingValue()))
+            .map(mapping -> new MappingValueDTO(mapping.getType().name(), mapping.getMappingValue()))
             .collect(Guavate.toImmutableList());
     }
-
-
 }
 

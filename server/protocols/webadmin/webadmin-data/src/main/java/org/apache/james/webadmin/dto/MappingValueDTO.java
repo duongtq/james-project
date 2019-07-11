@@ -19,15 +19,27 @@
 
 package org.apache.james.webadmin.dto;
 
-import org.junit.jupiter.api.Test;
+import org.apache.james.rrt.lib.Mapping;
 
-import nl.jqno.equalsverifier.EqualsVerifier;
+public class MappingValueDTO {
 
-class MappingValueTest {
+    private final String type;
+    private final String mapping;
 
-    @Test
-    void shouldMatchBeanContract() {
-        EqualsVerifier.forClass(MappingValue.class)
-            .verify();
+    public MappingValueDTO(Mapping mapping) {
+        this(mapping.getType().name(), mapping.getMappingValue());
+    }
+
+    public MappingValueDTO(String type, String mapping) {
+        this.type = type;
+        this.mapping = mapping;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getMapping() {
+        return mapping;
     }
 }

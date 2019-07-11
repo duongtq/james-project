@@ -92,12 +92,14 @@ class MappingRoutesTest {
     }
 
     @Test
-    void getMappingsShouldReturnAliasMappings() throws RecipientRewriteTableException {
+    void getMappingsShouldReturnAliasMappings() throws Exception {
+        User aliasDomain = User.fromUsername("alias@domain.tld");
+
         recipientRewriteTable.addAliasMapping(
-            MappingSource.fromUser(User.fromUsername("alias@domain.tld")),
+            MappingSource.fromUser(aliasDomain),
             "user@domain.tld");
         recipientRewriteTable.addAliasMapping(
-            MappingSource.fromUser(User.fromUsername("alias@domain.tld")),
+            MappingSource.fromUser(aliasDomain),
             "abc@domain.tld");
 
         String jsonBody = when()
@@ -117,23 +119,22 @@ class MappingRoutesTest {
                 "      \"type\": \"Alias\"," +
                 "      \"mapping\": \"user@domain.tld\"" +
                 "    }," +
-                "    " +
                 "    {" +
                 "      \"type\": \"Alias\"," +
                 "      \"mapping\" : \"abc@domain.tld\"" +
                 "    }" +
-                "    " +
                 "  ]" +
                 "}");
     }
 
     @Test
-    void getMappingsShouldReturnAliasDomainMappings() throws RecipientRewriteTableException {
+    void getMappingsShouldReturnAliasDomainMappings() throws Exception {
+        Domain domain = Domain.of("aliasdomain.tld");
         recipientRewriteTable.addAliasDomainMapping(
-            MappingSource.fromDomain(Domain.of("aliasdomain.tld")),
+            MappingSource.fromDomain(domain),
             Domain.of("domain1abc.tld"));
         recipientRewriteTable.addAliasDomainMapping(
-            MappingSource.fromDomain(Domain.of("aliasdomain.tld")),
+            MappingSource.fromDomain(domain),
             Domain.of("domain2cde.tld"));
 
         String jsonBody = when()
@@ -161,11 +162,10 @@ class MappingRoutesTest {
                 "    " +
                 "  ]" +
                 "}");
-
     }
 
     @Test
-    void getMappingsShouldReturnAddressMappings() throws AddressException, RecipientRewriteTableException {
+    void getMappingsShouldReturnAddressMappings() throws Exception {
         MailAddress mailAddress = new MailAddress("group@domain.tld");
         recipientRewriteTable.addAddressMapping(
             MappingSource.fromMailAddress(mailAddress), "user123@domain.tld" );
@@ -200,12 +200,11 @@ class MappingRoutesTest {
     }
 
     @Test
-    void getMappingsShouldReturnAllMappings() throws RecipientRewriteTableException, AddressException {
-
-         MailAddress mailAddress = new MailAddress("group@domain.tld");
+    void getMappingsShouldReturnAllMappings() throws Exception {
+        MailAddress mailAddress = new MailAddress("group@domain.tld");
 
         recipientRewriteTable.addAliasMapping(
-             MappingSource.fromUser(User.fromUsername("alias@domain.tld")),
+            MappingSource.fromUser(User.fromUsername("alias@domain.tld")),
             "user@domain.tld");
 
         recipientRewriteTable.addAliasDomainMapping(
@@ -250,5 +249,4 @@ class MappingRoutesTest {
                 "}"
                 );
     }
-
 }
