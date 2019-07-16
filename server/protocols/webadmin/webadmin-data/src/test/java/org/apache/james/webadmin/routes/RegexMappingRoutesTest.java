@@ -8,7 +8,6 @@ import org.apache.james.core.User;
 import org.apache.james.dnsservice.api.DNSService;
 import org.apache.james.domainlist.api.DomainList;
 import org.apache.james.domainlist.memory.MemoryDomainList;
-import org.apache.james.rrt.api.RecipientRewriteTableException;
 import org.apache.james.rrt.lib.Mapping;
 import org.apache.james.rrt.lib.MappingSource;
 import org.apache.james.rrt.memory.MemoryRecipientRewriteTable;
@@ -23,26 +22,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 class RegexMappingRoutesTest {
+
     private WebAdminServer webAdminServer;
     private MemoryRecipientRewriteTable memoryRecipientRewriteTable;
 
-    DNSService dnsService = mock(DNSService.class);
-    DomainList domainList = new MemoryDomainList(dnsService);
-
     @BeforeEach
     void beforeEach() throws Exception {
+        DNSService dnsService = mock(DNSService.class);
+        DomainList domainList = new MemoryDomainList(dnsService);
         memoryRecipientRewriteTable = new MemoryRecipientRewriteTable();
         memoryRecipientRewriteTable.setDomainList(domainList);
         domainList.addDomain(Domain.of("domain.tld"));
 
         webAdminServer = WebAdminUtils
-                .createWebAdminServer(new RegexMappingRoutes(memoryRecipientRewriteTable))
-                .start();
+            .createWebAdminServer(new RegexMappingRoutes(memoryRecipientRewriteTable))
+            .start();
 
         RestAssured.requestSpecification = WebAdminUtils.buildRequestSpecification(webAdminServer)
-                .setBasePath(RegexMappingRoutes.BASE_PATH) // the root already defined here
-                .log(LogDetail.METHOD)
-                .build();
+            .setBasePath(RegexMappingRoutes.BASE_PATH)
+            .log(LogDetail.METHOD)
+            .build();
     }
 
     @AfterEach
@@ -50,35 +49,29 @@ class RegexMappingRoutesTest {
         webAdminServer.destroy();
     }
 
-    // body is valid
     @Test
-    void addRegexMappingRoutesShouldReturnNoContentWhenNoBodyOnCreated() throws RecipientRewriteTableException {
-        // Extract directly into the place that requires
-        // User user = User.fromUsername("abc@domain.tld");
-
-        // add JSON content to the database.
+    void addRegexMappingRoutesShouldReturnNoContentWhenNoBodyOnCreated() {
         with()
-            .body("{" +
-                    "  \"source\": \"abc@domain.tld\"," +
-                    "  \"regex\": \"^[aeiou]\"" +
-                    "}")
-                .post() // Using BASE_PATH here with duplicate the route
-                        // Ex: /mappings/regex => /mappings/regex/mappings/
+            .body(
+                "{" +
+                "  \"source\": \"abc@domain.tld\"," +
+                "  \"regex\": \"^[aeiou]\"" +
+                "}")
+            .post()
         .then()
             .statusCode(204)
             .contentType(ContentType.JSON);
 
-        // Use component to retrieve data from database to use in assertThat()
         assertThat(memoryRecipientRewriteTable
-                .getStoredMappings(MappingSource.fromUser(User.fromUsername("abc@domain.tld"))))
-                .containsOnly(Mapping.regex("^[aeiou]"));
+            .getStoredMappings(MappingSource.fromUser(User.fromUsername("abc@domain.tld"))))
+            .containsOnly(Mapping.regex("^[aeiou]"));
     }
 
     @Test
     void addRegexMappingRoutesShouldReturnBadRequestWhenBodyIsInvalid() {
         with()
             .body("Invalid body")
-                .post()
+            .post()
         .then()
             .statusCode(400)
             .contentType(ContentType.JSON);
@@ -87,91 +80,102 @@ class RegexMappingRoutesTest {
     @Test
     void addRegexMappingRoutesShouldReturnBadRequestWhenSourceIsEmpty() {
         with()
-            .body("{" +
-                    "  \"source\": \"\"," +
-                    "  \"regex\": \"^[aeiou]\"" +
-                    "}")
-                    .post()
-            .then()
-                .statusCode(400)
-                .contentType(ContentType.JSON);
+            .body(
+                "{" +
+                "  \"source\": \"\"," +
+                "  \"regex\": \"^[aeiou]\"" +
+                "}")
+            .post()
+        .then()
+            .statusCode(400)
+            .contentType(ContentType.JSON);
     }
 
     @Test
-    void addRegexMappingRoutesShouldReturnBadRequestWhenRegexIsEmpty() {
+    void addRegexMappingShouldAllowEmptyRegex() {
         with()
-            .body("{" +
-                    "  \"source\":\"abc@domain.tld\"," +
-                    "  \"regex\": \"\"" +
-                    "}")
+            .body(
+                "{" +
+                "  \"source\":\"abc@domain.tld\"," +
+                "  \"regex\": \"\"" +
+                "}")
                 .post()
-            .then()
-                .statusCode(400)
-                .contentType(ContentType.JSON);
+        .then()
+            .statusCode(204)
+            .contentType(ContentType.JSON);
     }
 
     @Test
     void addRegexMappingRoutesShouldReturnBadRequestWhenSourceAndRegexEmpty() {
         with()
-            .body("{" +
-                    "  \"source\": \"\"," +
-                    "  \"regex\": \"\"" +
-                    "}")
+            .body(
+                "{" +
+                "  \"source\": \"\"," +
+                "  \"regex\": \"\"" +
+                "}")
                 .post()
-            .then()
-                .statusCode(400)
-                .contentType(ContentType.JSON);
+        .then()
+            .statusCode(400)
+            .contentType(ContentType.JSON);
     }
 
     @Test
     void addRegexMappingShouldReturnBadRequestWhenSourceIsNull() {
         with()
-            .body("{" +
-                    "  \"source\": null," +
-                    "  \"regex\": \"yourRegexExpression\"" +
-                    "}")
-                .post()
-            .then()
-                .statusCode(400)
-                .contentType(ContentType.JSON);
+            .body(
+                "{" +
+                "  \"source\": null," +
+                "  \"regex\": \"yourRegexExpression\"" +
+                "}")
+            .post()
+        .then()
+            .statusCode(400)
+            .contentType(ContentType.JSON);
     }
 
     @Test
     void addRegexMappingShouldReturnBadRequestWhenRegexIsNull() {
         with()
-            .body("{" +
-                    "  \"source\":\"abc@domain.tld\"," +
-                    "  \"regex\": null" +
-                    "}")
-                .post()
-            .then()
-                .statusCode(400)
-                .contentType(ContentType.JSON);
+            .body(
+                "{" +
+                "  \"source\":\"abc@domain.tld\"," +
+                "  \"regex\": null" +
+                "}")
+            .post()
+        .then()
+            .statusCode(400)
+            .contentType(ContentType.JSON);
     }
 
     @Test
     void addRegexMappingShouldReturnBadRequestWhenSourceAndRegexIsNull() {
         with()
-            .body("{" +
-                    "  \"source\":null," +
-                    "  \"regex\": null" +
-                    "}")
-                .post()
-            .then()
-                .statusCode(400)
-                .contentType(ContentType.JSON);
+            .body(
+                "{" +
+                "  \"source\":null," +
+                "  \"regex\": null" +
+                "}")
+            .post()
+        .then()
+            .statusCode(400)
+            .contentType(ContentType.JSON);
     }
 
     @Test
-    void addRegexMappingShouldReturnBadRequestWhenSourceIsInvalid() {
+    void addRegexMappingShouldAllowUserWithoutDomain() {
         with()
-            .body("{" +
-                    "  \"source\":\"abcdomaintld\"," +
-                    "  \"regex\": \"^[aeiou]\"" +
-                    "}")
-                .post()
-            .then()
-                .statusCode(400)
-                .contentType(ContentType.JSON);
+            .body(
+                "{" +
+                "  \"source\":\"abcdomaintld\"," +
+                "  \"regex\": \"^[aeiou]\"" +
+                "}")
+            .post()
+        .then()
+            .statusCode(204)
+            .contentType(ContentType.JSON);
+
+        assertThat(memoryRecipientRewriteTable
+            .getStoredMappings(MappingSource.fromUser(User.fromUsername("abcdomaintld"))))
+            .containsOnly(Mapping.regex("^[aeiou]"));
     }
 }
