@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.with;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.mock;
 
 class RegexMappingRoutesTest {
@@ -50,11 +51,11 @@ class RegexMappingRoutesTest {
     }
 
     @Test
-    void addRegexMappingRoutesShouldReturnNoContentWhenNoBodyOnCreated() {
+    void addRegexMappingShouldReturnNoContentWhenSuccess() {
         with()
             .body(
                 "{" +
-                "  \"source\": \"abc@domain.tld\"," +
+                "  \"source\": \"james@domain.tld\"," +
                 "  \"regex\": \"^[aeiou]\"" +
                 "}")
             .post()
@@ -63,12 +64,12 @@ class RegexMappingRoutesTest {
             .contentType(ContentType.JSON);
 
         assertThat(memoryRecipientRewriteTable
-            .getStoredMappings(MappingSource.fromUser(User.fromUsername("abc@domain.tld"))))
+            .getStoredMappings(MappingSource.fromUser(User.fromUsername("james@domain.tld"))))
             .containsOnly(Mapping.regex("^[aeiou]"));
     }
 
     @Test
-    void addRegexMappingRoutesShouldReturnBadRequestWhenBodyIsInvalid() {
+    void addRegexMappingShouldReturnBadRequestWhenBodyIsInvalid() {
         with()
             .body("Invalid body")
             .post()
@@ -78,7 +79,7 @@ class RegexMappingRoutesTest {
     }
 
     @Test
-    void addRegexMappingRoutesShouldReturnBadRequestWhenSourceIsEmpty() {
+    void addRegexMappingShouldReturnBadRequestWhenSourceIsEmpty() {
         with()
             .body(
                 "{" +
@@ -88,7 +89,8 @@ class RegexMappingRoutesTest {
             .post()
         .then()
             .statusCode(400)
-            .contentType(ContentType.JSON);
+            .contentType(ContentType.JSON)
+            .body("message", is("Invalid `source` field."));
     }
 
     @Test
@@ -96,27 +98,27 @@ class RegexMappingRoutesTest {
         with()
             .body(
                 "{" +
-                "  \"source\":\"abc@domain.tld\"," +
+                "  \"source\":\"james@domain.tld\"," +
                 "  \"regex\": \"\"" +
                 "}")
-                .post()
+            .post()
         .then()
             .statusCode(204)
             .contentType(ContentType.JSON);
     }
 
     @Test
-    void addRegexMappingRoutesShouldReturnBadRequestWhenSourceAndRegexEmpty() {
+    void addRegexMappingShouldReturnBadRequestWhenSourceAndRegexEmpty() {
         with()
             .body(
                 "{" +
                 "  \"source\": \"\"," +
                 "  \"regex\": \"\"" +
                 "}")
-                .post()
-        .then()
+            .post()
+        .then() // Compare response info
             .statusCode(400)
-            .contentType(ContentType.JSON);
+            .contentType(ContentType.JSON).body("message", is("Invalid `source` field."));
     }
 
     @Test
@@ -138,7 +140,7 @@ class RegexMappingRoutesTest {
         with()
             .body(
                 "{" +
-                "  \"source\":\"abc@domain.tld\"," +
+                "  \"source\":\"james@domain.tld\"," +
                 "  \"regex\": null" +
                 "}")
             .post()
@@ -166,7 +168,7 @@ class RegexMappingRoutesTest {
         with()
             .body(
                 "{" +
-                "  \"source\":\"abcdomaintld\"," +
+                "  \"source\":\"jamesdomaintld\"," +
                 "  \"regex\": \"^[aeiou]\"" +
                 "}")
             .post()
@@ -175,7 +177,7 @@ class RegexMappingRoutesTest {
             .contentType(ContentType.JSON);
 
         assertThat(memoryRecipientRewriteTable
-            .getStoredMappings(MappingSource.fromUser(User.fromUsername("abcdomaintld"))))
+            .getStoredMappings(MappingSource.fromUser(User.fromUsername("jamesdomaintld"))))
             .containsOnly(Mapping.regex("^[aeiou]"));
     }
 }

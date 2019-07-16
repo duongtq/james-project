@@ -53,7 +53,7 @@ public class RegexMappingRoutes implements Routes {
     })
     public HaltException addRegexMapping(Request request, Response response) throws JsonExtractException {
         RegexMappingDTO regexMappingDTO = jsonExtractor.parse(request.body());
-        MappingSource mappingSource = MappingSource.parse(regexMappingDTO.getSource());
+        MappingSource mappingSource = extractMappingSource(regexMappingDTO);
 
         try {
             recipientRewriteTable.addRegexMapping(mappingSource, regexMappingDTO.getRegex());
@@ -65,5 +65,18 @@ public class RegexMappingRoutes implements Routes {
                 .haltError();
         }
         return halt(HttpStatus.NO_CONTENT_204);
+    }
+
+    // Catch IllegalArgumentException here to improve the response message
+    private MappingSource extractMappingSource(RegexMappingDTO regexMappingDTO) {
+        try {
+            return MappingSource.parse(regexMappingDTO.getSource());
+        } catch (IllegalArgumentException e) {
+            throw ErrorResponder.builder()
+                .statusCode(HttpStatus.BAD_REQUEST_400)
+                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
+                .message("Invalid `source` field.")
+                .haltError();
+        }
     }
 }
