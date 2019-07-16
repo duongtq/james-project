@@ -38,7 +38,7 @@ public class RegexMappingRoutes implements Routes {
 
     @Override
     public void define(Service service) {
-        service.post(getBasePath(), this::addRegexMappingRoutes );
+        service.post(getBasePath(), this::addRegexMappingRoutes);
     }
 
     @POST
@@ -56,7 +56,7 @@ public class RegexMappingRoutes implements Routes {
         String regex = toRegex(request);
 
         // Handle null values
-        if ( mappingSource == null || regex == null || regex == "" ) {
+        if (mappingSource == null || regex == null || regex == "") {
             return halt(HttpStatus.BAD_REQUEST_400);
         }
 
@@ -76,12 +76,12 @@ public class RegexMappingRoutes implements Routes {
         AddRegexMappingRequestBodyDTO addRegexMappingRequestBodyDTO = jsonExtractor.parse(request.body());
         String mappingSourceString = addRegexMappingRequestBodyDTO.getSource();
 
-        if ( mappingSourceString == null ) {
+        if (mappingSourceString == null) {
             return null;
         }
 
         // Check if user email matchs the pattern address@domain.com
-        if ( mappingSourceString.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$") == false) {
+        if (mappingSourceString.matches("^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$") == false) {
             return null;
         }
 
@@ -92,8 +92,7 @@ public class RegexMappingRoutes implements Routes {
     public String toRegex(Request request) throws Exception {
         AddRegexMappingRequestBodyDTO addRegexMappingRequestBodyDTO = jsonExtractor.parse(request.body());
         String regex = addRegexMappingRequestBodyDTO.getRegex();
-        if ( regex == null )
-        {
+        if (regex == null) {
             return null;
         }
         return regex;
