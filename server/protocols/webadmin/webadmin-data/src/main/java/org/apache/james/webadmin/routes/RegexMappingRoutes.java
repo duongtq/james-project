@@ -1,8 +1,10 @@
 package org.apache.james.webadmin.routes;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import static spark.Spark.halt;
+
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+
 import org.apache.james.rrt.api.RecipientRewriteTable;
 import org.apache.james.rrt.api.RecipientRewriteTableException;
 import org.apache.james.rrt.lib.MappingSource;
@@ -12,15 +14,14 @@ import org.apache.james.webadmin.utils.ErrorResponder;
 import org.apache.james.webadmin.utils.JsonExtractException;
 import org.apache.james.webadmin.utils.JsonExtractor;
 import org.eclipse.jetty.http.HttpStatus;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import spark.HaltException;
 import spark.Request;
 import spark.Response;
 import spark.Service;
-
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-
-import static spark.Spark.halt;
 
 public class RegexMappingRoutes implements Routes {
 
