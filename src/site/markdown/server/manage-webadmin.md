@@ -39,6 +39,7 @@ as exposed above). To avoid information duplication, this is ommited on endpoint
  - [Creating address forwards](#Creating_address_forwards)
  - [Creating address aliases](#Creating_address_aliases)
  - [Creating address domain](#Creating_address_domain)
+ - [Creating address regex mapping](#Creating_address_regex)
  - [Administrating mail repositories](#Administrating_mail_repositories)
  - [Administrating mail queues](#Administrating_mail_queues)
  - [Administrating DLP Configuration](#Administrating_DLP_Configuration)
@@ -1455,7 +1456,6 @@ Response codes:
  - 400: Alias structure or member is not valid
 
 ## Creating address domain
-
 You can use **webadmin** to define domain mappings.
 
 Given a configured source (from) domain and a destination (to) domain, when an email is sent to an address belonging to the source domain, then the domain part of this address is overwritten, the destination domain is then used.
@@ -1544,6 +1544,50 @@ Response codes:
  - 204: OK
  - 400: The `fromDomain` resource name is invalid
  - 400: The destination domain specified in the body is invalid
+
+## Creating address regex mapping
+You can use **webadmin** to create addres-regex mappings.
+
+When a request containing a JSON body with two fields 'source' and 'regex' is sent, the route will update database
+
+For example: send a request with body
+```
+{
+    "source": "james@domain.tld",
+    "regex": "^[aeiou]"
+}
+```
+the route will add an address-regex mapping `james@domain.tld`-`^[aeiou]` into RecipientRewriteTable.
+
+This feature uses [Recipients rewrite table](/server/config-recipientrewritetable.html) and requires
+the [RecipientRewriteTable API](https://github.com/apache/james-project/blob/master/server/mailet/mailets/src/main/java/org/apache/james/transport/mailets/RecipientRewriteTable.java)
+to be configured.
+
+ - [Adding an address regex mapping](#Adding_an_address_regex_mapping)
+ 
+### Adding an address-regex mapping
+```
+curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"source":"james@domain.tld","regex":"^[aeiou]"}' \
+  http://ip:port/mappings/regex
+```
+
+Body:
+```
+{
+    "source": "james@domain.tld",
+    "regex": "^[aeiou]"
+}
+```
+
+With `james@domain.tld` as the value passed to `source` resource name,`^[aeiou]` as the value passed to `regex`, the API will add an address-regex to the database.
+
+Response codes:
+
+ - 204: No body on creation.
+ - 400: The body of the request is invalid.
+ - 500: Server error.
 
 ## Administrating mail repositories
 
