@@ -630,7 +630,6 @@ public class StoreMailboxManager implements MailboxManager {
         } catch (MailboxNotFoundException e) {
             return false;
         }
-
     }
 
     /**

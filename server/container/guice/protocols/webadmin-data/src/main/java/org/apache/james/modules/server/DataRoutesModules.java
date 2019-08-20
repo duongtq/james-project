@@ -25,6 +25,7 @@ import org.apache.james.webadmin.routes.AddressMappingRoutes;
 import org.apache.james.webadmin.routes.AliasRoutes;
 import org.apache.james.webadmin.routes.DomainMappingsRoutes;
 import org.apache.james.webadmin.routes.DomainsRoutes;
+import org.apache.james.webadmin.routes.EmlRoutes;
 import org.apache.james.webadmin.routes.ForwardRoutes;
 import org.apache.james.webadmin.routes.GroupsRoutes;
 import org.apache.james.webadmin.routes.MappingRoutes;
@@ -46,6 +47,7 @@ public class DataRoutesModules extends AbstractModule {
         routesMultibinder.addBinding().to(DomainMappingsRoutes.class);
         routesMultibinder.addBinding().to(ForwardRoutes.class);
         routesMultibinder.addBinding().to(GroupsRoutes.class);
+        routesMultibinder.addBinding().to(EmlRoutes.class);
         routesMultibinder.addBinding().to(MappingRoutes.class);
         routesMultibinder.addBinding().to(RegexMappingRoutes.class);
         routesMultibinder.addBinding().to(UserRoutes.class);
