@@ -19,78 +19,38 @@
 
 package org.apache.james.webadmin.service;
 
-import static org.apache.james.webadmin.routes.EmlRoutes.MAILBOX_ID;
-
-import java.io.ByteArrayInputStream;
-
 import javax.inject.Inject;
 
 import org.apache.james.mailbox.MailboxManager;
 import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.MessageManager;
-import org.apache.james.mailbox.exception.BadCredentialsException;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.mailbox.model.MailboxId;
-import org.apache.james.webadmin.utils.ErrorResponder;
-import org.eclipse.jetty.http.HttpStatus;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import spark.Request;
-
-public class EmlService {
+public class ImportEmlService {
 
     private final MailboxId.Factory mailboxIdFactory;
     private final MailboxManager mailboxManager;
 
     @Inject
     @VisibleForTesting
-    public EmlService(MailboxManager mailboxManager, MailboxId.Factory mailboxIdFactory) {
+    public ImportEmlService(MailboxManager mailboxManager, MailboxId.Factory mailboxIdFactory) {
         this.mailboxManager = mailboxManager;
         this.mailboxIdFactory = mailboxIdFactory;
     }
 
-    public void importEmlFileToMailbox(Request request) throws MailboxException {
-
-        MailboxSession session = getMailboxSession();
-        MessageManager mailbox = getMailboxFromMailboxIdAndSession(request);
-        mailbox.appendMessage(MessageManager.AppendCommand.builder()
-            .recent()
-            .build(new ByteArrayInputStream(request.bodyAsBytes())), session);
-
-    }
-
     public MailboxSession getMailboxSession() throws MailboxException {
-        MailboxSession session;
-        try {
-            session = mailboxManager.createSystemSession("james@linagora.com");
-        } catch (BadCredentialsException e) {
-            throw ErrorResponder.builder()
-                .statusCode(HttpStatus.BAD_REQUEST_400)
-                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
-                .message("Bad credential.")
-                .haltError();
-        }
-        return session;
+        MailboxSession webAdminImportEMLSession = mailboxManager.createSystemSession("EmlService");
+        return webAdminImportEMLSession;
     }
 
-    private MessageManager getMailboxFromMailboxIdAndSession(Request request) throws MailboxException {
-        String mailboxIdString = request.params(MAILBOX_ID);
-        MailboxId mailboxId = mailboxIdFactory.fromString(mailboxIdString);
-
+    public MessageManager retrieveMailbox(String mailboxIdParameter) throws MailboxException {
+        MailboxId mailboxId = mailboxIdFactory.fromString(mailboxIdParameter);
         MailboxSession session = getMailboxSession();
 
-        MessageManager mailbox;
-
-        try {
-            mailbox = mailboxManager.getMailbox(mailboxId, session);
-        } catch (MailboxException e) {
-            throw ErrorResponder.builder()
-                .statusCode(HttpStatus.BAD_REQUEST_400)
-                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
-                .message("Unable to create mailbox.")
-                .haltError();
-        }
+        MessageManager mailbox = mailboxManager.getMailbox(mailboxId, session);
         return mailbox;
     }
 }

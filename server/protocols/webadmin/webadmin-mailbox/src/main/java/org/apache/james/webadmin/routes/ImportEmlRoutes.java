@@ -27,10 +27,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+import org.apache.james.mailbox.MailboxSession;
+import org.apache.james.mailbox.MessageManager;
+import org.apache.james.mailbox.exception.BadCredentialsException;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.webadmin.Constants;
 import org.apache.james.webadmin.Routes;
-import org.apache.james.webadmin.service.EmlService;
+import org.apache.james.webadmin.service.ImportEmlService;
+import org.apache.james.webadmin.utils.ErrorResponder;
 import org.eclipse.jetty.http.HttpStatus;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -45,21 +49,21 @@ import spark.Response;
 import spark.Service;
 
 @Api(tags = "EML")
-@Path(EmlRoutes.BASE_PATH)
+@Path(ImportEmlRoutes.BASE_PATH)
 @Produces(Constants.JSON_CONTENT_TYPE)
-public class EmlRoutes implements Routes {
+public class ImportEmlRoutes implements Routes {
 
     public static final String MAILBOX_ID = ":mailboxId";
     static final String BASE_PATH = "/mailboxes";
     static final String MESSAGES = "messages";
     static final String IMPORT_EML_PATH = BASE_PATH + SEPARATOR + MAILBOX_ID + SEPARATOR + MESSAGES;
 
-    private final EmlService emlService;
+    private ImportEmlService importEmlService;
 
     @Inject
     @VisibleForTesting
-    EmlRoutes(EmlService emlService) {
-        this.emlService = emlService;
+    ImportEmlRoutes(ImportEmlService importEmlService) {
+        this.importEmlService = importEmlService;
     }
 
     @Override
@@ -81,7 +85,44 @@ public class EmlRoutes implements Routes {
     })
     public HaltException importEmlFileToMailbox(Request request, Response response) throws MailboxException {
 
-        emlService.importEmlFileToMailbox(request);
+        MailboxSession session = getMailboxSessionFromEmlService();
+        MessageManager mailbox = getMailboxFromEmlService(request);
+
+        try {
+            mailbox.appendMessage(MessageManager.AppendCommand.builder()
+                .recent()
+                .build(request.body()), session);
+        } catch (MailboxException e) {
+            throw ErrorResponder.builder()
+                .statusCode(HttpStatus.BAD_REQUEST_400)
+                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
+                .message("Invalid file extension.")
+                .haltError();
+        }
         return halt(HttpStatus.NO_CONTENT_204);
+    }
+
+    private MailboxSession getMailboxSessionFromEmlService() throws MailboxException {
+        try {
+            return importEmlService.getMailboxSession();
+        } catch (BadCredentialsException e) {
+             throw ErrorResponder.builder()
+                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500)
+                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
+                .message("Internal server error.")
+                .haltError();
+        }
+    }
+
+    private MessageManager getMailboxFromEmlService(Request request) {
+        try {
+            return importEmlService.retrieveMailbox(request.params(MAILBOX_ID));
+        } catch (MailboxException e) {
+             throw ErrorResponder.builder()
+                .statusCode(HttpStatus.BAD_REQUEST_400)
+                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
+                .message("Unable to retrieve mailbox.")
+                .haltError();
+        }
     }
 }

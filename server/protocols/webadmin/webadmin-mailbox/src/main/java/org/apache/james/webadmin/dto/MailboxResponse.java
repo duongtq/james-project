@@ -19,13 +19,11 @@
 
 package org.apache.james.webadmin.dto;
 
-import org.apache.james.mailbox.model.MailboxId;
-
 public class MailboxResponse {
 
     private final String mailboxName;
 
-    public MailboxResponse(String mailboxName, MailboxId mailboxId) {
+    public MailboxResponse(String mailboxName) {
         this.mailboxName = mailboxName;
     }
 

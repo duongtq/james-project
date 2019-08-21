@@ -24,6 +24,7 @@ import org.apache.james.webadmin.jackson.QuotaModule;
 import org.apache.james.webadmin.routes.DomainQuotaRoutes;
 import org.apache.james.webadmin.routes.EventDeadLettersRoutes;
 import org.apache.james.webadmin.routes.GlobalQuotaRoutes;
+import org.apache.james.webadmin.routes.ImportEmlRoutes;
 import org.apache.james.webadmin.routes.UserMailboxesRoutes;
 import org.apache.james.webadmin.routes.UserQuotaRoutes;
 import org.apache.james.webadmin.utils.JsonTransformerModule;
@@ -39,6 +40,7 @@ public class MailboxRoutesModule extends AbstractModule {
         routesMultibinder.addBinding().to(DomainQuotaRoutes.class);
         routesMultibinder.addBinding().to(EventDeadLettersRoutes.class);
         routesMultibinder.addBinding().to(GlobalQuotaRoutes.class);
+        routesMultibinder.addBinding().to(ImportEmlRoutes.class);
         routesMultibinder.addBinding().to(UserQuotaRoutes.class);
         routesMultibinder.addBinding().to(UserMailboxesRoutes.class);
 
