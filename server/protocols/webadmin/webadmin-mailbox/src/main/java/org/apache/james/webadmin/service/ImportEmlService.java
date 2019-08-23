@@ -42,15 +42,12 @@ public class ImportEmlService {
     }
 
     public MailboxSession getMailboxSession() throws MailboxException {
-        MailboxSession webAdminImportEMLSession = mailboxManager.createSystemSession("EmlService");
-        return webAdminImportEMLSession;
+        return mailboxManager.createSystemSession("EmlService");
     }
 
     public MessageManager retrieveMailbox(String mailboxIdParameter) throws MailboxException {
         MailboxId mailboxId = mailboxIdFactory.fromString(mailboxIdParameter);
         MailboxSession session = getMailboxSession();
-
-        MessageManager mailbox = mailboxManager.getMailbox(mailboxId, session);
-        return mailbox;
+        return mailboxManager.getMailbox(mailboxId, session);
     }
 }

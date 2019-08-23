@@ -29,7 +29,6 @@ import javax.ws.rs.Produces;
 
 import org.apache.james.mailbox.MailboxSession;
 import org.apache.james.mailbox.MessageManager;
-import org.apache.james.mailbox.exception.BadCredentialsException;
 import org.apache.james.mailbox.exception.MailboxException;
 import org.apache.james.webadmin.Constants;
 import org.apache.james.webadmin.Routes;
@@ -57,6 +56,7 @@ public class ImportEmlRoutes implements Routes {
     static final String BASE_PATH = "/mailboxes";
     static final String MESSAGES = "messages";
     static final String IMPORT_EML_PATH = BASE_PATH + SEPARATOR + MAILBOX_ID + SEPARATOR + MESSAGES;
+    static final int MAXIMUM_SIZE_IN_BYTE = 2684354;
 
     private ImportEmlService importEmlService;
 
@@ -83,33 +83,33 @@ public class ImportEmlRoutes implements Routes {
         @ApiResponse(code = HttpStatus.NO_CONTENT_204, message = "EML file successfully imported"),
         @ApiResponse(code = HttpStatus.BAD_REQUEST_400, message = "Invalid parameter")
     })
-    public HaltException importEmlFileToMailbox(Request request, Response response) throws MailboxException {
-
+    public HaltException importEmlFileToMailbox(Request request, Response response) throws Exception {
+        final byte[] fileSize = request.body().getBytes();
         MailboxSession session = getMailboxSessionFromEmlService();
         MessageManager mailbox = getMailboxFromEmlService(request);
 
-        try {
-            mailbox.appendMessage(MessageManager.AppendCommand.builder()
+        mailbox.appendMessage(MessageManager.AppendCommand.builder()
                 .recent()
                 .build(request.body()), session);
-        } catch (MailboxException e) {
+
+        if (fileSize.length > MAXIMUM_SIZE_IN_BYTE) {
             throw ErrorResponder.builder()
-                .statusCode(HttpStatus.BAD_REQUEST_400)
-                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
-                .message("Invalid file extension.")
-                .haltError();
+            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500)
+            .type(ErrorResponder.ErrorType.SERVER_ERROR)
+            .message("File size exceed the limit (2.56MB)")
+            .haltError();
         }
         return halt(HttpStatus.NO_CONTENT_204);
     }
 
-    private MailboxSession getMailboxSessionFromEmlService() throws MailboxException {
+    private MailboxSession getMailboxSessionFromEmlService() {
         try {
             return importEmlService.getMailboxSession();
-        } catch (BadCredentialsException e) {
+        } catch (MailboxException e) {
              throw ErrorResponder.builder()
-                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500)
-                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
-                .message("Internal server error.")
+                .statusCode(HttpStatus.NOT_FOUND_404)
+                .type(ErrorResponder.ErrorType.NOT_FOUND)
+                .message("Unable to retrieve mailbox.")
                 .haltError();
         }
     }
@@ -119,8 +119,8 @@ public class ImportEmlRoutes implements Routes {
             return importEmlService.retrieveMailbox(request.params(MAILBOX_ID));
         } catch (MailboxException e) {
              throw ErrorResponder.builder()
-                .statusCode(HttpStatus.BAD_REQUEST_400)
-                .type(ErrorResponder.ErrorType.INVALID_ARGUMENT)
+                .statusCode(HttpStatus.NOT_FOUND_404)
+                .type(ErrorResponder.ErrorType.NOT_FOUND)
                 .message("Unable to retrieve mailbox.")
                 .haltError();
         }
