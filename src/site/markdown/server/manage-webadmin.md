@@ -315,6 +315,7 @@ Response codes:
  - [Testing existence of a mailbox](#Testing_existence_of_a_mailbox)
  - [Listing user mailboxes](#Listing_user_mailboxes)
  - [Deleting_user_mailboxes](#Deleting_user_mailboxes)
+ - [Import EML files to a mailbox](#Import_EML_files_to_user_mail)  
 
 ### Creating a mailbox
 
@@ -399,6 +400,39 @@ Response codes:
 
  - 204: The user do not have mailboxes anymore
  - 404: The user name does not exist
+ 
+ ### Import EML files to a mailbox 
+You can use **webadmin** to import EML files to a mailbox.
+
+EML is a file [extension](https://whatis.techtarget.com/definition/extension) for an [e-mail](https://whatis.techtarget.com/definition/e-mail-electronic-mail-or-email) message saved to a file in the [MIME](https://whatis.techtarget.com/definition/MIME-Multi-Purpose-Internet-Mail-Extensions) RFC 822 standard [format](https://whatis.techtarget.com/definition/format) by [Microsoft](https://searchwindowsserver.techtarget.com/definition/Microsoft) Outlook Express as well as some other email programs.
+
+Everytime, when a request URL containing a `mailboxId` parameter with EML body is sent, the system will use that `mailboxId` to find corresponding `mailbox`, then import the EML content to that mailbox. 
+
+```
+curl -XPOST http://ip:port/mailboxs/mailboxId/message 
+```
+
+Body:
+```
+Date: Sun, 1 Apr 2012 14:25:25 -0600  
+From: file@fyicenter.com  
+Subject: Welcome  
+To: someone@somewhere.com  
+  
+Dear Friend,  
+  
+Welcome to file.fyicenter.com!  
+  
+Sincerely,  
+FYIcenter.com Team
+```
+
+Resource name `mailboxId` should belong to an existing user.
+
+Response codes:
+
+-   204: EML file successfully imported to mailbox
+-   400: Unable to create mailbox
 
 ## Administrating quotas by users
 
