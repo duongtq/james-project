@@ -85,20 +85,19 @@ public class ImportEmlRoutes implements Routes {
     })
     public HaltException importEmlFileToMailbox(Request request, Response response) throws Exception {
         final byte[] fileSize = request.body().getBytes();
+        if (fileSize.length > MAXIMUM_SIZE_IN_BYTE) {
+            throw ErrorResponder.builder()
+                .statusCode(HttpStatus.PAYLOAD_TOO_LARGE_413)
+                .type(ErrorResponder.ErrorType.WRONG_STATE)
+                .message("File size exceed the limit (2.56MB)")
+                .haltError();
+        }
+
         MailboxSession session = getMailboxSessionFromEmlService();
         MessageManager mailbox = getMailboxFromEmlService(request);
-
         mailbox.appendMessage(MessageManager.AppendCommand.builder()
                 .recent()
                 .build(request.body()), session);
-
-        if (fileSize.length > MAXIMUM_SIZE_IN_BYTE) {
-            throw ErrorResponder.builder()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500)
-            .type(ErrorResponder.ErrorType.SERVER_ERROR)
-            .message("File size exceed the limit (2.56MB)")
-            .haltError();
-        }
         return halt(HttpStatus.NO_CONTENT_204);
     }
 

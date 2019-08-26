@@ -161,7 +161,7 @@ public class ImportEmlRoutesTest {
         .with()
             .post("/" + dummyInbox.serialize() + "/messages")
         .then()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR_500)
+            .statusCode(HttpStatus.PAYLOAD_TOO_LARGE_413)
             .contentType(ContentType.JSON)
             .body("message", is("File size exceed the limit (2.56MB)"));
     }
